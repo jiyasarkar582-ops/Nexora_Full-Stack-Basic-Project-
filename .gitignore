@@ -29,3 +29,5 @@ frontend/dist/
 frontend/dist-ssr/
 frontend/*.local
 frontend/.eslintcache
+.vercel/
+
