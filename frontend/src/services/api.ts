@@ -20,8 +20,11 @@ export interface ContactData {
  * @returns The backend text response message
  */
 export const submitContactForm = async (data: ContactData): Promise<string> => {
-  const response = await apiClient.post<string>("/contact", data);
-  return response.data;
+  const response = await apiClient.post<any>("/submit", data);
+  if (response.data && response.data.name) {
+    return `Thank you ${response.data.name}, your inquiry has been saved!`;
+  }
+  return "Form submitted successfully!";
 };
 
 export default apiClient;

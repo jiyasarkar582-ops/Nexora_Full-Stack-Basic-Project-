@@ -1,58 +1,75 @@
 package com.nexora.landing.controller;
 
-import com.nexora.landing.dto.ContactRequest;
+import com.nexora.landing.model.Contact;
+import com.nexora.landing.repository.ContactRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.MediaType;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
-@RequestMapping("/contact")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = {"http://localhost:5173", "https://nexora-full-stack-basic-project-5ko.vercel.app"})
 public class ContactController {
 
     private static final Logger logger = LoggerFactory.getLogger(ContactController.class);
 
+    @Autowired
+    private ContactRepository repo;
+
+    @PostMapping("/submit")
+    public Contact saveContact(@RequestBody Contact contact) {
+        logSubmission("JSON (submit)", contact);
+        return repo.save(contact);
+    }
+
+    @GetMapping("/contacts")
+    public List<Contact> getAllContacts() {
+        return repo.findAll();
+    }
+
     /**
-     * Handles JSON payloads from standard React Axios calls (application/json)
+     * Backwards-compatible endpoint for JSON payloads pointing to /contact
      */
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> submitContactJson(@RequestBody ContactRequest request) {
-        logSubmission("JSON", request);
+    @PostMapping(value = "/contact", consumes = "application/json")
+    public ResponseEntity<String> submitContactJson(@RequestBody Contact contact) {
+        logSubmission("JSON (contact)", contact);
+        repo.save(contact);
         return ResponseEntity.ok("Form submitted successfully!");
     }
 
     /**
-     * Handles standard form URL-encoded payloads (application/x-www-form-urlencoded)
-     * mapping parameters directly to the ContactRequest object.
+     * Backwards-compatible endpoint for Form URL-encoded payloads pointing to /contact
      */
-    @PostMapping(consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    public ResponseEntity<String> submitContactFormEncoded(@ModelAttribute ContactRequest request) {
-        logSubmission("Form URL-encoded", request);
+    @PostMapping(value = "/contact", consumes = "application/x-www-form-urlencoded")
+    public ResponseEntity<String> submitContactFormEncoded(@ModelAttribute Contact contact) {
+        logSubmission("Form URL-encoded (contact)", contact);
+        repo.save(contact);
         return ResponseEntity.ok("Form submitted successfully!");
     }
 
     /**
-     * Fallback endpoint if Content-Type is not specified or differs
+     * Backwards-compatible fallback endpoint for /contact
      */
-    @PostMapping
-    public ResponseEntity<String> submitContactFallback(ContactRequest request) {
-        logSubmission("Fallback/Param", request);
+    @PostMapping("/contact")
+    public ResponseEntity<String> submitContactFallback(Contact contact) {
+        logSubmission("Fallback (contact)", contact);
+        repo.save(contact);
         return ResponseEntity.ok("Form submitted successfully!");
     }
 
-    private void logSubmission(String type, ContactRequest request) {
+    private void logSubmission(String type, Contact contact) {
         logger.info("========================================");
         logger.info("New Contact Submission Received ({})", type);
-        logger.info("Name:    {}", request.getName());
-        logger.info("Email:   {}", request.getEmail());
-        logger.info("Message: {}", request.getMessage());
+        logger.info("Name:    {}", contact.getName());
+        logger.info("Email:   {}", contact.getEmail());
+        logger.info("Message: {}", contact.getMessage());
         logger.info("========================================");
         
-        // Print to console using System.out.println as explicitly requested in PRD BR-04
-        System.out.println("Console Out -> Submitted Name: " + request.getName());
-        System.out.println("Console Out -> Submitted Email: " + request.getEmail());
-        System.out.println("Console Out -> Submitted Message: " + request.getMessage());
+        System.out.println("Console Out -> Submitted Name: " + contact.getName());
+        System.out.println("Console Out -> Submitted Email: " + contact.getEmail());
+        System.out.println("Console Out -> Submitted Message: " + contact.getMessage());
     }
 }
