@@ -28,7 +28,7 @@ export default function Footer() {
           </div>
 
           {/* Quick Links */}
-          <div className="flex flex-wrap justify-center gap-8">
+          <div className="flex flex-wrap justify-center items-center gap-8">
             {["Features", "About", "FAQ", "Contact"].map((item) => (
               <a
                 key={item}
@@ -38,6 +38,12 @@ export default function Footer() {
                 {item}
               </a>
             ))}
+            <a
+              href="#contacts"
+              className="text-xs font-semibold text-brand-indigo hover:text-white transition-colors uppercase tracking-wider border-l border-white/10 pl-8"
+            >
+              Admin Dashboard
+            </a>
           </div>
 
           {/* Social Icons */}

@@ -18,11 +18,22 @@ export default function Navbar() {
   }, []);
 
   const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-      setIsMobileMenuOpen(false);
+    const isDashboard = window.location.hash === "#contacts" || window.location.hash === "#admin";
+    if (isDashboard) {
+      window.location.hash = "";
+      setTimeout(() => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" });
+        }
+      }, 100);
+    } else {
+      const element = document.getElementById(id);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
     }
+    setIsMobileMenuOpen(false);
   };
 
   return (
@@ -35,7 +46,16 @@ export default function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between">
         {/* Logo */}
-        <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
+        <div 
+          className="flex items-center gap-2 cursor-pointer" 
+          onClick={() => {
+            if (window.location.hash) {
+              window.location.hash = "";
+            } else {
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+          }}
+        >
           <div className="p-2 bg-gradient-to-tr from-brand-indigo to-brand-violet rounded-xl shadow-lg shadow-brand-indigo/30">
             <Code2 className="w-6 h-6 text-white" />
           </div>
@@ -55,6 +75,12 @@ export default function Navbar() {
               {item}
             </button>
           ))}
+          <a
+            href="#contacts"
+            className="text-sm font-medium text-slate-400 hover:text-brand-indigo transition-colors duration-200 cursor-pointer font-semibold border-l border-white/10 pl-8"
+          >
+            Dashboard
+          </a>
         </div>
 
         {/* Desktop CTA Button */}
@@ -91,6 +117,13 @@ export default function Navbar() {
                 {item}
               </button>
             ))}
+            <a
+              href="#contacts"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="text-left text-base font-semibold text-brand-indigo hover:text-white transition-colors py-2 border-t border-white/5 pt-4 cursor-pointer"
+            >
+              Dashboard
+            </a>
             <button
               onClick={() => scrollToSection("contact")}
               className="w-full text-center rounded-xl py-3 text-sm font-medium bg-gradient-to-r from-brand-indigo to-brand-violet text-white shadow-md shadow-brand-indigo/20 cursor-pointer"

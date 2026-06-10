@@ -1,24 +1,26 @@
 # Nexora - Developer-First SaaS Landing Page
 
-Nexora is a premium, developer-first SaaS landing page built as a modern full-stack web application. It integrates a sleek React 19 + Vite frontend using Tailwind CSS v4 with a robust Spring Boot 3.x backend form processor.
+Nexora is a premium, developer-first SaaS landing page built as a modern full-stack web application. It integrates a sleek React 19 + Vite frontend using Tailwind CSS v4 with a robust Spring Boot 3.x backend form processor and a database-backed Contact Management Dashboard.
 
 ---
 
 ## 🚀 Key Features
 
 - **Premium Green-Carbon Theme**: A sophisticated, non-AI-generic dark theme built on neutral carbon grays (`#08090A`), with emerald, mint, and teal accents.
-- **Interactive UI Components**:
-  - Responsive **Hero Section** with code tab switchers and a custom SVG analytics chart.
-  - Monochrome **Logo Cloud** for trusted tools.
-  - Bento Grid **Features Section** styled with glassmorphism overlays and interactive hover lifts.
-  - Accrued **Testimonials** showcasing developer feedback.
-  - Fully interactive accordion-style **FAQs**.
+- **Contact Form & Validation**:
   - High-fidelity **Contact Form** featuring inline regex validation (name, email, message length), loading spinner states, and a custom toast notification on success.
-- **Spring Boot Form Processing**:
-  - A Java REST Controller mapping submissions under `http://localhost:8080/contact`.
+- **Contact Management Dashboard**:
+  - A secure developer dashboard (accessed via `http://localhost:5173/#contacts` or navigation links) to view and manage inquiries.
+  - Features real-time search query filtering, metrics summaries (Total Submissions, Connection Status, Submissions Today), data copy-to-clipboard options, and a CSV exporter.
+  - Individual contact deleting.
+  - Offline mode: Falls back seamlessly to browser `localStorage` if the database is offline.
+  - **Load Testing (1,000 Users)**: A seed button that generates and loads 1,000 mock entries in under a second.
+- **Standalone Admin Page**:
+  - An isolated `contacts.html` page (located at `/public/contacts.html` and served at `http://localhost:5173/contacts.html`) that uses the standard native `fetch` API to query the backend database and display contacts in a styled table.
+- **Spring Boot REST Engine**:
+  - REST endpoints mapping database submissions.
   - Supports standard `application/json` (Axios) and `application/x-www-form-urlencoded` payloads.
   - Pre-configured CORS mapping explicitly allowing requests originating from `http://localhost:5173`.
-  - Prints parsed form contents to the system console terminal for easy logging and inspection.
 
 ---
 
@@ -33,6 +35,7 @@ Nexora is a premium, developer-first SaaS landing page built as a modern full-st
 
 ### Backend
 - **Framework**: Spring Boot 3.x (Java 21+)
+- **ORM / Database**: Spring Data JPA + Hibernate + MySQL
 - **Build System**: Maven
 - **Server**: Embedded Tomcat (defaulting to Port 8080)
 
@@ -43,18 +46,22 @@ Nexora is a premium, developer-first SaaS landing page built as a modern full-st
 ```text
 ├── backend/                       # Spring Boot Application
 │   ├── src/main/java/com/nexora/landing/
-│   │   ├── controller/            # ContactController (REST endpoint mapping)
+│   │   ├── controller/            # ContactController (GET, POST, DELETE REST endpoints)
 │   │   ├── dto/                   # ContactRequest (DTO payload structure)
+│   │   ├── model/                 # Contact (JPA Database Entity model)
+│   │   ├── repository/            # ContactRepository (Data JPA Access Layer)
 │   │   └── LandingApplication.java# App bootstrapper
 │   └── pom.xml                    # Maven dependencies
 ├── frontend/                      # React 19 Frontend
+│   ├── public/
+│   │   └── contacts.html          # Standalone contacts table using native fetch
 │   ├── src/
-│   │   ├── components/            # UI components (Hero, Navbar, Form, Features, etc.)
-│   │   ├── services/              # API Axios client configuration (api.ts)
-│   │   ├── App.tsx                # Page Assembly
+│   │   ├── components/            # UI components (Hero, Navbar, Form, ContactsDashboard, etc.)
+│   │   ├── services/              # API Axios client configuration & services (api.ts)
+│   │   ├── App.tsx                # Page Assembly & Hash Router
 │   │   └── index.css              # Global styles & Tailwind config
-│   ├── tailwind.config.js
-│   └── package.json               # Node packages and build scripts
+│   ├── package.json               # Node packages and build scripts
+│   └── vite.config.ts
 └── README.md                      # Project documentation
 ```
 
@@ -64,46 +71,52 @@ Nexora is a premium, developer-first SaaS landing page built as a modern full-st
 
 ### 1. Prerequisites
 - **Java JDK 21** or higher.
+- **MySQL Server** (listening on default port `3306` with database `contactdb` created).
 - **Node.js** (v18+) & **npm** (v9+).
 
 ### 2. Start the Backend Server
-Navigate to the backend directory and run the Maven wrapper command to start the Spring Boot server (which listens on port `8080`):
+Navigate to the backend directory and run the Maven wrapper command to start the Spring Boot server (listening on port `8080`):
 ```bash
 cd backend
 ./mvnw spring-boot:run
 ```
 
 ### 3. Start the Frontend Dev Server
-Navigate to the frontend directory, install dependencies, and launch the Vite development server (which listens on port `5173`):
+Navigate to the frontend directory, install dependencies, and launch the Vite development server (listening on port `5173`):
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173) in your browser to view the page.
+Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ---
 
 ## 📡 API Reference
 
-### Submit Contact Form
-
-- **Endpoint**: `/contact`
+### 1. Submit Contact Form
+- **Endpoint**: `/contact` or `/submit`
 - **Method**: `POST`
-- **Supported Content-Types**:
-  - `application/json`
-  - `application/x-www-form-urlencoded`
+- **Request Body**: JSON object containing `name`, `email`, and `message`.
+- **Response**: `200 OK`
 
-#### Request Payload (JSON)
-```json
-{
-  "name": "Jane Doe",
-  "email": "jane.doe@example.com",
-  "message": "We would love to integrate your form engine into our dashboard!"
-}
-```
+### 2. Get All Contacts
+- **Endpoint**: `/contacts`
+- **Method**: `GET`
+- **Response**: List of all submissions as JSON.
 
-#### Response (Success)
-- **Status Code**: `200 OK`
-- **Response Body**: `Form submitted successfully!`
+### 3. Delete Contact
+- **Endpoint**: `/contacts/{id}`
+- **Method**: `DELETE`
+- **Response**: `200 OK` (success) or `404 Not Found`.
+
+### 4. Seed 1,000 Mock Contacts (Load Testing)
+- **Endpoint**: `/contacts/seed`
+- **Method**: `POST`
+- **Response**: `200 OK`
+
+### 5. Clear All Contacts
+- **Endpoint**: `/contacts/clear`
+- **Method**: `DELETE`
+- **Response**: `200 OK`
